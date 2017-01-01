@@ -54,6 +54,8 @@ values."
 
      ;; tools
      git
+    (version-control :variables
+                      version-control-diff-tool 'diff-hl)
      org
      syntax-checking
      (chinese :variables
