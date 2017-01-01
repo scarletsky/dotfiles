@@ -313,6 +313,7 @@ before packages are loaded. If you are unsure, you should try in setting them in
                                             :weight normal
                                             :width normal
                                             :powerline-scale 1))
+  (setq-default evil-search-module 'evil-search)
   )
 
 (defun dotspacemacs/user-config ()
