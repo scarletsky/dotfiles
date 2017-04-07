@@ -11,24 +11,24 @@ Plug 'tomasr/molokai'
 
 Plug 'editorconfig/editorconfig-vim'
 Plug 'tpope/vim-surround'
-Plug 'Lokaltog/vim-powerline'
 Plug 'tpope/vim-fugitive'
 Plug 'kien/ctrlp.vim'
 Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
-Plug 'vim-scripts/taglist.vim'
 Plug 'mattn/emmet-vim'
-Plug 'majutsushi/tagbar'
 Plug 'easymotion/vim-easymotion'
 Plug 'nathanaelkane/vim-indent-guides'
 Plug 'tomtom/tlib_vim'
 Plug 'Raimondi/delimitMate'
-Plug 'terryma/vim-multiple-cursors'
 Plug 'scrooloose/syntastic'
 Plug 'tpope/vim-commentary'
 Plug 'Yggdroot/indentLine'
 Plug 'fholgado/minibufexpl.vim'
 Plug 'rking/ag.vim'
 Plug 'henrik/vim-indexed-search'
+Plug 'elixir-lang/vim-elixir'
+Plug 'vim-airline/vim-airline'
+Plug 'airblade/vim-gitgutter'
+
 
 call plug#end()
 filetype plugin indent on     " required!
