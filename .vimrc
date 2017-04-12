@@ -22,7 +22,6 @@ Plug 'Raimondi/delimitMate'
 Plug 'scrooloose/syntastic'
 Plug 'tpope/vim-commentary'
 Plug 'Yggdroot/indentLine'
-Plug 'fholgado/minibufexpl.vim'
 Plug 'rking/ag.vim'
 Plug 'henrik/vim-indexed-search'
 Plug 'elixir-lang/vim-elixir'
@@ -87,6 +86,7 @@ vmap <s-tab> <gv
 nmap <C-z> :shell<CR>
 
 nmap <leader>fs :w<CR>
+nmap <leader>bd :bd<CR>
 
 nmap <leader>yy "*yy
 nmap <leader>p "*p
