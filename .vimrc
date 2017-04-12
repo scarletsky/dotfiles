@@ -46,6 +46,7 @@ syntax on
 
 filetype plugin on
 
+set mouse=a             " 让 vim 支持鼠标操作
 set encoding=utf-8      " 设置utf-8编码
 set number              " 显示行号
 set visualbell          " 去掉输入错误的提示音
@@ -84,6 +85,11 @@ vmap <tab> >gv
 vmap <s-tab> <gv
 
 nmap <C-z> :shell<CR>
+
+nmap <leader>fs :w<CR>
+
+nmap <leader>yy "*yy
+nmap <leader>p "*p
 
 " nmap <F7> :NERDTreeFind<CR>
 nmap <F7> :NERDTreeToggle<CR>
