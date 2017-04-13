@@ -87,9 +87,11 @@ nmap <C-z> :shell<CR>
 
 nmap <leader>fs :w<CR>
 nmap <leader>bd :bd<CR>
+nmap <leader>bb :ls<CR>
 nmap <leader>yy "*yy
 nmap <leader>p "*p
 nmap <leader>qq :q<CR>
+nmap <leader><tab> <C-^>
 
 " nmap <F7> :NERDTreeFind<CR>
 nmap <F7> :NERDTreeToggle<CR>
