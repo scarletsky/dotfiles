@@ -1,7 +1,7 @@
 set nocompatible              " be iMproved
+set hidden
 filetype off                  " required!
 
-set rtp+=~/.vim/bundle/vundle/
 call plug#begin('~/.vim/plugged')
 
 " My bundles here:
@@ -12,7 +12,6 @@ Plug 'tomasr/molokai'
 Plug 'editorconfig/editorconfig-vim'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-fugitive'
-Plug 'kien/ctrlp.vim'
 Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
 Plug 'mattn/emmet-vim'
 Plug 'easymotion/vim-easymotion'
@@ -27,6 +26,7 @@ Plug 'henrik/vim-indexed-search'
 Plug 'elixir-lang/vim-elixir'
 Plug 'vim-airline/vim-airline'
 Plug 'airblade/vim-gitgutter'
+Plug 'vim-ctrlspace/vim-ctrlspace'
 
 
 call plug#end()
@@ -107,11 +107,6 @@ map <leader>il :IndentLinesToggle<CR>
 map  <Leader><Leader> <Plug>(easymotion-bd-f)
 nmap <Leader><Leader> <Plug>(easymotion-overwin-f)
 
-" CtrlP plugin Settings
-let g:ctrlp_custom_ignore = 'node_modules\|build\|\.git$\|\.hg$\|\.svn$'
-
-let g:ctrlp_map = '<c-p>'
-
 " Taglist Settings
 let Tlist_Show_One_File=1
 let Tlist_Exit_OnlyWindow=1
@@ -130,8 +125,6 @@ set backspace=2
 " Commentary Setting
 autocmd FileType python,shell set commentstring=#\ %s
 
-set runtimepath^=~/.vim/bundle/ctrlp
-
 " Syntasitic
 set statusline+=%#warningmsg#
 set statusline+=%{SyntasticStatuslineFlag()}
@@ -147,3 +140,17 @@ let g:syntastic_check_on_wq = 0
 set laststatus=2
 set background=dark
 colorscheme molokai
+
+" Ctrl Space
+nnoremap <silent><C-p> :CtrlSpace O<CR>
+let g:CtrlSpaceLoadLastWorkspaceOnStart = 1
+let g:CtrlSpaceSaveWorkspaceOnSwitch = 1
+let g:CtrlSpaceSaveWorkspaceOnExit = 1
+if has("gui_running")
+    " Settings for MacVim and Inconsolata font
+    let g:CtrlSpaceSymbols = { "File": "◯", "CTab": "▣", "Tabs": "▢" }
+endif
+
+if executable("ag")
+    let g:CtrlSpaceGlobCommand = 'ag -l --nocolor -g ""'
+endif
