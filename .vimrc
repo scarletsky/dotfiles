@@ -1,5 +1,4 @@
 set nocompatible              " be iMproved
-set hidden
 filetype off                  " required!
 
 call plug#begin('~/.vim/plugged')
@@ -12,21 +11,21 @@ Plug 'tomasr/molokai'
 Plug 'editorconfig/editorconfig-vim'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-fugitive'
+Plug 'tpope/vim-commentary'
 Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
 Plug 'mattn/emmet-vim'
+Plug 'ctrlpvim/ctrlp.vim'
 Plug 'easymotion/vim-easymotion'
 Plug 'nathanaelkane/vim-indent-guides'
 Plug 'tomtom/tlib_vim'
 Plug 'Raimondi/delimitMate'
 Plug 'scrooloose/syntastic'
-Plug 'tpope/vim-commentary'
 Plug 'Yggdroot/indentLine'
 Plug 'rking/ag.vim'
 Plug 'henrik/vim-indexed-search'
 Plug 'elixir-lang/vim-elixir'
 Plug 'vim-airline/vim-airline'
 Plug 'airblade/vim-gitgutter'
-Plug 'vim-ctrlspace/vim-ctrlspace'
 
 
 call plug#end()
@@ -141,16 +140,8 @@ set laststatus=2
 set background=dark
 colorscheme molokai
 
-" Ctrl Space
-nnoremap <silent><C-p> :CtrlSpace O<CR>
-let g:CtrlSpaceLoadLastWorkspaceOnStart = 1
-let g:CtrlSpaceSaveWorkspaceOnSwitch = 1
-let g:CtrlSpaceSaveWorkspaceOnExit = 1
-if has("gui_running")
-    " Settings for MacVim and Inconsolata font
-    let g:CtrlSpaceSymbols = { "File": "◯", "CTab": "▣", "Tabs": "▢" }
-endif
 
-if executable("ag")
-    let g:CtrlSpaceGlobCommand = 'ag -l --nocolor -g ""'
-endif
+" CtrlP
+let g:ctrlp_custom_ignore = '\v[\/]\.(git|hg|svn|node_modules)$'
+let g:ctrlp_user_command = 'find %s -type f'        " MacOSX/Linux
+let g:ctrlp_user_command = ['.git', 'cd %s && git ls-files -co --exclude-standard']
