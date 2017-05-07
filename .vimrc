@@ -26,6 +26,8 @@ Plug 'henrik/vim-indexed-search'
 Plug 'elixir-lang/vim-elixir'
 Plug 'vim-airline/vim-airline'
 Plug 'airblade/vim-gitgutter'
+" Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+" Plug 'junegunn/fzf.vim'
 
 
 call plug#end()
@@ -70,6 +72,8 @@ set ignorecase          " 搜索时忽略大小写
 
 let mapleader = "\<Space>"
 
+cnoremap <expr> %% getcmdtype( ) == ':' ? expand('%:h').'/' : '%%'
+
 " 窗口跳转
 map <C-j> <C-w>j
 map <C-k> <C-w>k
@@ -85,6 +89,7 @@ vmap <s-tab> <gv
 nmap <C-z> :shell<CR>
 
 nmap <leader>fs :w<CR>
+nmap <leader>fl :Ex<CR>
 nmap <leader>bd :bd<CR>
 nmap <leader>bb :ls<CR>
 nmap <leader>yy "*yy
@@ -145,3 +150,7 @@ colorscheme molokai
 let g:ctrlp_custom_ignore = '\v[\/]\.(git|hg|svn|node_modules)$'
 let g:ctrlp_user_command = 'find %s -type f'        " MacOSX/Linux
 let g:ctrlp_user_command = ['.git', 'cd %s && git ls-files -co --exclude-standard']
+
+" fzf
+" let g:fzf_launcher = "~/.vim/fzf_macvim %s"
+" let $FZF_DEFAULT_COMMAND = 'ag -l -g ""'
