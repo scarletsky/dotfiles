@@ -26,6 +26,7 @@ Plug 'henrik/vim-indexed-search'
 Plug 'elixir-lang/vim-elixir'
 Plug 'vim-airline/vim-airline'
 Plug 'airblade/vim-gitgutter'
+Plug 'tacahiroy/ctrlp-funky'
 " Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 " Plug 'junegunn/fzf.vim'
 
@@ -55,8 +56,8 @@ set noswapfile          " 不使用swp文件
 set nowrap
 
 " 设置缩进
-set tabstop=2
-set shiftwidth=2
+set tabstop=4
+set shiftwidth=4
 set expandtab           " 将tab键转换为空格
 set smartindent         " 智能缩进, 等同 set si
 set autoindent          " 自动缩进，等同 set ai
@@ -89,7 +90,7 @@ vmap <s-tab> <gv
 nmap <C-z> :shell<CR>
 
 nmap <leader>fs :w<CR>
-nmap <leader>fl :Ex<CR>
+nmap <leader>ls :CtrlP %%<CR>
 nmap <leader>bd :bd<CR>
 nmap <leader>bb :ls<CR>
 nmap <leader>yy "*yy
@@ -150,6 +151,12 @@ colorscheme molokai
 let g:ctrlp_custom_ignore = '\v[\/]\.(git|hg|svn|node_modules)$'
 let g:ctrlp_user_command = 'find %s -type f'        " MacOSX/Linux
 let g:ctrlp_user_command = ['.git', 'cd %s && git ls-files -co --exclude-standard']
+
+" CtrlP funky
+nnoremap <Leader>fu :CtrlPFunky<Cr>
+" narrow the list down with a word under cursor
+nnoremap <Leader>fU :execute 'CtrlPFunky ' . expand('<cword>')<Cr>
+
 
 " fzf
 " let g:fzf_launcher = "~/.vim/fzf_macvim %s"
