@@ -27,6 +27,7 @@ Plug 'elixir-lang/vim-elixir'
 Plug 'vim-airline/vim-airline'
 Plug 'airblade/vim-gitgutter'
 Plug 'tacahiroy/ctrlp-funky'
+Plug 'ntpeters/vim-better-whitespace'
 " Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 " Plug 'junegunn/fzf.vim'
 
@@ -103,9 +104,6 @@ nmap <F7> :NERDTreeToggle<CR>
 nmap <F8> :TagbarToggle<CR>
 nnoremap <silent> <F9> :TlistToggle<CR>
 
-nnoremap <leader>gd :GitDiff<CR>
-nnoremap <leader>gs :GitStatus<CR>
-
 map <leader>il :IndentLinesToggle<CR>
 
 " Easymotion plugin Settings
@@ -124,6 +122,11 @@ let g:Powerline_symbols = 'fancy'
 
 " Fix backspace key not work
 set backspace=2
+
+" Git fugitive
+nnoremap <leader>gd :Gdiff<CR>
+nnoremap <leader>gs :Gstatus<CR>
+
 
 " Emmet Settings
 
