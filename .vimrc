@@ -154,3 +154,8 @@ let g:ctrlp_user_command = ['.git', 'cd %s && git ls-files -co --exclude-standar
 " fzf
 " let g:fzf_launcher = "~/.vim/fzf_macvim %s"
 " let $FZF_DEFAULT_COMMAND = 'ag -l -g ""'
+
+" Command
+command! PrettyPrintJSON %!python -m json.tool
+command! PrettyPrintHTML !tidy -mi -html -wrap 0 %
+command! PrettyPrintXML !tidy -mi -xml -wrap 0 %
