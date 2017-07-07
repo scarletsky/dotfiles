@@ -5,8 +5,9 @@ call plug#begin('~/.vim/plugged')
 
 " My bundles here:
 " color theme
-"" Plug 'NLKNguyen/papercolor-theme'
-Plug 'tomasr/molokai'
+" Plug 'NLKNguyen/papercolor-theme'
+" Plug 'tomasr/molokai'
+Plug 'trevordmiller/nova-vim'
 
 Plug 'editorconfig/editorconfig-vim'
 Plug 'tpope/vim-surround'
@@ -150,7 +151,7 @@ let g:syntastic_check_on_wq = 0
 " Color Theme
 set laststatus=2
 set background=dark
-colorscheme molokai
+colorscheme nova
 
 
 " CtrlP
