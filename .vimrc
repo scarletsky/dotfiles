@@ -12,6 +12,7 @@ Plug 'editorconfig/editorconfig-vim'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-commentary'
+Plug 'tpope/tpope-vim-abolish'
 Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
 Plug 'mattn/emmet-vim'
 Plug 'ctrlpvim/ctrlp.vim'
@@ -28,6 +29,7 @@ Plug 'vim-airline/vim-airline'
 Plug 'airblade/vim-gitgutter'
 Plug 'tacahiroy/ctrlp-funky'
 Plug 'ntpeters/vim-better-whitespace'
+Plug 'maksimr/vim-jsbeautify'
 " Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 " Plug 'junegunn/fzf.vim'
 
@@ -52,6 +54,7 @@ set mouse=a             " 让 vim 支持鼠标操作
 set encoding=utf-8      " 设置utf-8编码
 set number              " 显示行号
 set visualbell          " 去掉输入错误的提示音
+set incsearch           " 设置查找时高亮匹配项
 set guifont=Monaco:h20  " 设置字体大小
 set noswapfile          " 不使用swp文件
 set nowrap
