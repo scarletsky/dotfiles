@@ -110,18 +110,6 @@
 (after! projectile
   (add-to-list 'projectile-globally-ignored-directories "submodules"))
 
-;; cc-mode 和 glsl-mode 中会使用 `C-h/j/k/l` 快捷键，和全局快捷键冲突
-(after! ccls
-  (map! :map (c-mode-map c++-mode-map)
-        :n "C-h" #'evil-window-left
-        :n "C-j" #'evil-window-down
-        :n "C-k" #'evil-window-up
-        :n "C-l" #'evil-window-right
-        :n "M-h" (cmd! (ccls-navigate "U"))
-        :n "M-j" (cmd! (ccls-navigate "R"))
-        :n "M-k" (cmd! (ccls-navigate "L"))
-        :n "M-l" (cmd! (ccls-navigate "D"))))
-
 (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
 ; ;; (add-to-list 'default-frame-alist '(ns-appearance . dark))
 
@@ -129,15 +117,6 @@
           (lambda ()
             (make-local-variable 'js-indent-level)
             (setq js-indent-level 2)))
-
-(after! flycheck
-  (flycheck-define-error-level 'lsp-flycheck-info-unnecessary
-    :severity 'info
-    :compilation-level 0
-    :overlay-category 'flycheck-info-overlay
-    :fringe-bitmap 'flycheck-fringe-bitmap-double-arrow
-    :fringe-face 'flycheck-fringe-info
-    :error-list-face 'flycheck-error-list-info))
 
 (after! js2-mode
   (setq js2-basic-offset 2))
@@ -155,97 +134,3 @@
   (setq web-mode-css-indent-offset 2)
   (setq web-mode-code-indent-offset 2))
 
-;; ====== lsp-mode 配置 ======
-
-(after! lsp-mode
-  ;; 忽略搜索 submodules
-  (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]submodules"))
-
-(after! lsp-javascript
-  ;; 优先使用当前项目的 TypeScript SDK，避免跨 workspace 复用其他项目的 tsserver。
-  (setq lsp-clients-typescript-prefer-use-project-ts-server t))
-
-(after! lsp-volar
-  (defun my/lsp-volar--same-root-p (a b)
-    (and a b
-         (string= (file-truename (directory-file-name a))
-                  (file-truename (directory-file-name b)))))
-
-  (defun my/lsp-volar--find-ts-workspace (root)
-    (cl-find-if
-     (lambda (workspace)
-       (and (eq (lsp--client-server-id (lsp--workspace-client workspace))
-                lsp-volar-typescript-server-id)
-            (my/lsp-volar--same-root-p root (lsp--workspace-root workspace))))
-     (lsp--session-workspaces (lsp-session))))
-
-  (defun lsp-volar--tsserver-request-handler (volar-workspace params)
-    "Forward Volar tsserver requests to the TypeScript workspace with the same root."
-    (if-let* ((root (lsp--workspace-root volar-workspace))
-              (ts-ls-workspace (my/lsp-volar--find-ts-workspace root)))
-        (with-lsp-workspace ts-ls-workspace
-          (-let [[[id command payload]] params]
-            (lsp-request-async
-             "workspace/executeCommand"
-             (list :command "typescript.tsserverRequest"
-                   :arguments (vector command payload))
-             (lambda (response)
-               (let ((body (lsp-get response :body)))
-                 (lsp-volar--send-notify
-                  volar-workspace
-                  "tsserver/response"
-                  (vector (vector id body)))))
-             :error-handler
-             (lambda (error-response)
-               (lsp--warn "tsserver/request async error: %S" error-response)))))
-      (lsp--error "[lsp-volar] Could not find `%s` lsp client for %s"
-                  lsp-volar-typescript-server-id
-                  (or (lsp--workspace-root volar-workspace) "<unknown root>")))))
-
-;; persp-mode + lsp-mode：自动重连断开的 LSP，并在关闭 workspace 时回收 orphan workspaces
-(after! (persp-mode lsp-mode)
-  (setq +lsp-defer-shutdown 30)
-
-  (add-hook! 'persp-activated-functions
-    (defun my/lsp-restart-on-workspace-switch-h (&rest _)
-      (when-let* ((persp (get-current-persp))
-                  (persp-name (safe-persp-name persp)))
-        (run-with-idle-timer
-         0 nil
-         (lambda (name)
-           (when-let ((current (get-current-persp)))
-             (when (equal name (safe-persp-name current))
-               (dolist (buf (persp-buffers current))
-                 (when (buffer-live-p buf)
-                   (with-current-buffer buf
-                     (when (and (bound-and-true-p lsp-mode)
-                                (buffer-file-name)
-                                (not (file-remote-p default-directory))
-                                (null (lsp-workspaces)))
-                       (with-demoted-errors "LSP reconnect error: %S"
-                         (lsp-deferred)))))))))
-         persp-name))))
-
-  (add-hook! 'persp-before-kill-functions
-    (defun my/lsp-shutdown-orphaned-workspaces-h (persp)
-      (let (workspaces)
-        (dolist (buf (persp-buffers persp))
-          (when (buffer-live-p buf)
-            (with-current-buffer buf
-              (when (bound-and-true-p lsp-mode)
-                (dolist (ws (lsp-workspaces))
-                  (cl-pushnew ws workspaces))))))
-
-        ;; 这个 hook 触发时，persp 里的 buffer 还没真正移除；
-        ;; 所以延后一拍再检查哪些 workspace 已经变成 orphan。
-        (when workspaces
-          (run-at-time
-           0 nil
-           (lambda (wss)
-             (dolist (ws wss)
-               (unless (cl-some #'lsp-buffer-live-p
-                                (lsp--workspace-buffers ws))
-                 (with-demoted-errors "LSP shutdown error: %S"
-                   (let ((+lsp-defer-shutdown 0))
-                     (lsp-workspace-shutdown ws))))))
-           workspaces))))))
