@@ -118,19 +118,31 @@
             (make-local-variable 'js-indent-level)
             (setq js-indent-level 2)))
 
+;; 统一 Corfu 的确认行为：RET 只确认候选，不顺手换行
+(setq +corfu-want-ret-to-confirm t)
+
+(after! typescript-ts-mode
+  (setq typescript-ts-mode-indent-offset 2))
+
 (after! js2-mode
   (setq js2-basic-offset 2))
 
-(after! rjsx-mode
-  (setq js2-basic-offset 2))
+(after! web-mode
+  ;; 额外让 wxml 也用 web-mode
+  (add-to-list 'auto-mode-alist '("\\.wxml\\'" . web-mode))
 
-(use-package! web-mode
-  ;:mode ("\\.vue\\'" "\\.wxml\\'")
-  :mode ("\\.wxml\\'")
-  :config
-  ;; 这里就是设置一下缩进为2个空格
-  (setq web-mode-indent-level 2)
-  (setq web-mode-markup-indent-offset 2)
-  (setq web-mode-css-indent-offset 2)
-  (setq web-mode-code-indent-offset 2))
+  ;; 统一 2 空格缩进
+  (setq web-mode-markup-indent-offset 2
+        web-mode-css-indent-offset 2
+        web-mode-code-indent-offset 2))
 
+;; JSX/TSX: 让 emmet-mode 真正支持 tsx-ts-mode，而不是只支持旧的 rjsx-mode
+(after! emmet-mode
+  (add-to-list 'emmet-jsx-major-modes 'tsx-ts-mode)
+  (add-hook 'tsx-ts-mode-hook #'emmet-mode)
+
+  ;; 在 JSX/TSX 里，TAB 的行为和 web-mode 保持一致：
+  ;; 优先缩进；在行尾时优先 snippet / emmet 展开。
+  (map! :map tsx-ts-mode-map
+        :gi "TAB"   #'+web/indent-or-yas-or-emmet-expand
+        :gi "<tab>" #'+web/indent-or-yas-or-emmet-expand))
