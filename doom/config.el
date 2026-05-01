@@ -98,13 +98,11 @@
   (message "%s" (or (executable-find program)
                     "Not found")))
 
-(map! :en "C-h"       #'evil-window-left
-      :en "C-j"       #'evil-window-down
-      :en "C-k"       #'evil-window-up
-      :en "C-l"       #'evil-window-right
-      :en "C-["       #'evil-force-normal-state
-      :en "SPC f f"   #'counsel-find-file)
-
+(map! :n "C-h"       #'evil-window-left
+      :n "C-j"       #'evil-window-down
+      :n "C-k"       #'evil-window-up
+      :n "C-l"       #'evil-window-right
+      :n "C-["       #'evil-force-normal-state)
 
 ;; 忽略搜索 git submodules 目录
 (after! projectile
@@ -120,6 +118,31 @@
 
 ;; 统一 Corfu 的确认行为：RET 只确认候选，不顺手换行
 (setq +corfu-want-ret-to-confirm t)
+
+;;; GLSL ----------------------------------------------------------------------
+;; 背景：
+;; - Doom 的 `(cc +tree-sitter)' 会把 `glsl-mode' 自动 remap 到
+;;   `glsl-ts-mode'。
+;; - 但当前 glsl-mode 包里的 `glsl-ts-mode' 和 Emacs 30.2 自带的
+;;   `c-ts-mode' API 不兼容：它调用了内部函数
+;;   `c-ts-mode--simple-indent-rules'，而这个函数在 Emacs 30.2 中不存在。
+;;   结果是 `glsl-ts-setup' 中途报错，GLSL 文件没有语法高亮。
+;; - 传统的 `glsl-mode' 工作正常，并且有普通 font-lock 语法高亮。
+;;
+;; 暂时让 GLSL 文件继续使用传统 `glsl-mode'。这里用用户级 remap 覆盖
+;; Doom 的默认 remap，但不删除 Doom 的默认配置，方便以后恢复：等
+;; `glsl-ts-mode' 兼容后，删掉下面这一行即可。
+(add-to-list 'major-mode-remap-alist '(glsl-mode . glsl-mode))
+
+;; Doom 的 `(cc +lsp)' 还会给 GLSL mode hook 自动加入 `lsp!'。当前配置使用
+;; `:tools (lsp +eglot +booster)'，所以它会尝试为 GLSL 启动 Eglot。
+;; 但现在没有配置可用的 GLSL language server，可能出现：
+;;   [eglot] Wrong type argument: processp, nil
+;; 目前我只需要 GLSL 语法高亮，所以关闭 GLSL 的自动 LSP。以后如果配置了
+;; GLSL language server，可以删掉下面这两个 `remove-hook'。
+(after! glsl-mode
+  (remove-hook 'glsl-mode-local-vars-hook #'lsp!)
+  (remove-hook 'glsl-ts-mode-local-vars-hook #'lsp!))
 
 (after! typescript-ts-mode
   (setq typescript-ts-mode-indent-offset 2))
