@@ -144,6 +144,30 @@
   (remove-hook 'glsl-mode-local-vars-hook #'lsp!)
   (remove-hook 'glsl-ts-mode-local-vars-hook #'lsp!))
 
+;;; TypeScript tree-sitter ----------------------------------------------------
+;; `.local' 被清理后，Doom 不会自动重新编译 tree-sitter grammar。这里只负责
+;; 自动补装，grammar recipe 仍然使用 Doom 的 `:lang javascript' 模块维护的值。
+(setq treesit-auto-install-grammar 'always)
+
+(defun my/ensure-treesit-grammar (lang)
+  "Install LANG's tree-sitter grammar into Doom's profile directory when missing."
+  (when (and (require 'treesit nil t)
+             (treesit-available-p)
+             (not (treesit-ready-p lang t)))
+    (if (assoc lang treesit-language-source-alist)
+        (let ((dir (file-name-concat doom-profile-data-dir "tree-sitter")))
+          (make-directory dir t)
+          (treesit-install-language-grammar lang dir))
+      (message "No tree-sitter grammar recipe registered for `%s'" lang))))
+
+(defun my/ensure-typescript-treesit-grammars (&rest _)
+  "Install TypeScript and TSX tree-sitter grammars when missing."
+  (dolist (lang '(typescript tsx))
+    (my/ensure-treesit-grammar lang)))
+
+(advice-add #'typescript-ts-mode :before #'my/ensure-typescript-treesit-grammars)
+(advice-add #'tsx-ts-mode :before #'my/ensure-typescript-treesit-grammars)
+
 (after! typescript-ts-mode
   (setq typescript-ts-mode-indent-offset 2))
 
