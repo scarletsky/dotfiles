@@ -169,3 +169,11 @@
   (map! :map tsx-ts-mode-map
         :gi "TAB"   #'+web/indent-or-yas-or-emmet-expand
         :gi "<tab>" #'+web/indent-or-yas-or-emmet-expand))
+
+;; 复用系统 Rime 的配置和词库
+;; 不要自动编译 rime，改成手动
+;;   cd ~/.config/emacs/.local/straight/build-30.2/liberime
+;;   make clean && make -B
+(after! liberime
+  (setq liberime-auto-build nil
+        liberime-user-data-dir "~/Library/Rime/"))
