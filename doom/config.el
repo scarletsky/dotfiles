@@ -208,6 +208,7 @@
 ;;   cd ~/.config/emacs/.local/straight/build-30.2/liberime
 ;;   make clean && make -B
 (setq liberime-auto-build nil
+      liberime-shared-data-dir "~/Library/Rime/"
       liberime-user-data-dir "~/Library/Rime/")
 
 (after! pyim
@@ -224,4 +225,3 @@
 ;; 如需手动切换简繁，可在 Emacs 中用 Rime 的方案菜单，或临时执行：
 ;; (liberime-simulate-key-sequence "{Control+Shift+4}")
 
-;;; config.el ends here
