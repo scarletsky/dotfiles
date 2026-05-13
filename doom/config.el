@@ -70,12 +70,37 @@
 (after! corfu
   (setq corfu-preview-current t
         ;; 'valid 更像 VSCode，但更容易误确认；如果不喜欢就改成 'prompt。
-        corfu-preselect 'valid))
+        corfu-preselect 'valid)
+
+  ;; VSCode Dark 风格的补全弹窗配色。
+  (custom-set-faces!
+    '(corfu-default
+      :background "#252526"
+      :foreground "#cccccc")
+    '(corfu-current
+      :background "#264f78"
+      :foreground "#ffffff"
+      :weight bold
+      :extend t)
+    '(corfu-border
+      :background "#454545")
+    '(corfu-bar
+      :background "#797979")
+    '(corfu-annotations
+      :foreground "#8c8c8c")
+    '(corfu-deprecated
+      :foreground "#8c8c8c"
+      :strike-through t)))
 
 (after! corfu-popupinfo
   (setq corfu-popupinfo-delay '(0.25 . 0.1)
         corfu-popupinfo-max-width 100
-        corfu-popupinfo-max-height 20))
+        corfu-popupinfo-max-height 20)
+
+  (custom-set-faces!
+    '(corfu-popupinfo
+      :background "#1e1e1e"
+      :foreground "#cccccc")))
 
 (after! eglot
   ;; Eglot 的 completion category 是 eglot-capf。Doom 目前只给 lsp-capf 加了
