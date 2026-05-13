@@ -242,6 +242,10 @@
         pyim-page-style 'vertical
         pyim-page-tooltip 'posframe))
 
+(after! evil-pinyin
+  ;; 关闭 Evil / ? n N 的拼音搜索扩展，避免把搜索内容展开成大量中文 regexp。
+  (setq-default evil-pinyin-with-search-rule 'never))
+
 (after! liberime
   ;; 明确选择系统里正在用的 Rime schema。如果实际用小鹤混输，改成
   ;; "rime_mint_flypy"。
