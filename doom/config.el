@@ -116,8 +116,85 @@
             (make-local-variable 'js-indent-level)
             (setq js-indent-level 2)))
 
+;;; Better Eglot + Corfu completion ------------------------------------------
 ;; 统一 Corfu 的确认行为：RET 只确认候选，不顺手换行
 (setq +corfu-want-ret-to-confirm t)
+
+(after! corfu
+  (setq corfu-preview-current t
+        ;; 'valid 更像 VSCode，但更容易误确认；如果不喜欢就改成 'prompt
+        corfu-preselect 'valid))
+
+(after! corfu-popupinfo
+  (setq corfu-popupinfo-delay '(0.25 . 0.1)
+        corfu-popupinfo-max-width 100
+        corfu-popupinfo-max-height 20))
+
+(after! eglot
+  ;; Eglot 的 completion category 是 eglot-capf。
+  ;; Doom 目前只给 lsp-capf 加了 orderless override，所以这里手动补上。
+  (add-to-list 'completion-category-overrides
+               '(eglot-capf (styles orderless basic)))
+
+  ;; 连续补全时缓存候选，减少请求 language server 的次数。
+  (setq eglot-cache-session-completions t
+        eglot-send-changes-idle-time 0.2)
+
+  ;; TypeScript / JavaScript 补全增强。
+  (setf (plist-get eglot-workspace-configuration :typescript)
+        '(:preferences
+          (:includePackageJsonAutoImports "on"
+           :includeCompletionsForModuleExports t
+           :includeCompletionsForImportStatements t
+           :includeAutomaticOptionalChainCompletions t
+           :includeCompletionsWithSnippetText t)
+          :suggest
+          (:completeFunctionCalls t))
+
+        (plist-get eglot-workspace-configuration :javascript)
+        '(:preferences
+          (:includePackageJsonAutoImports "on"
+           :includeCompletionsForModuleExports t
+           :includeCompletionsForImportStatements t
+           :includeAutomaticOptionalChainCompletions t
+           :includeCompletionsWithSnippetText t)
+          :suggest
+          (:completeFunctionCalls t))
+
+        ;; Python auto import 补全。
+        (plist-get eglot-workspace-configuration :python)
+        '(:analysis
+          (:autoImportCompletions t)))
+
+  ;; JS / TS / TSX：明确使用 typescript-language-server。
+  (set-eglot-client! '((js-mode :language-id "javascript")
+                       (js-ts-mode :language-id "javascript")
+                       (typescript-mode :language-id "typescript")
+                       (typescript-ts-mode :language-id "typescript")
+                       (tsx-ts-mode :language-id "typescriptreact"))
+                     '("typescript-language-server" "--stdio"))
+
+  ;; HTML / CSS：需要 pnpm add -D vscode-langservers-extracted。
+  (set-eglot-client! '((html-mode :language-id "html")
+                       (html-ts-mode :language-id "html"))
+                     '("vscode-html-language-server" "--stdio"))
+
+  (set-eglot-client! '((css-mode :language-id "css")
+                       (css-ts-mode :language-id "css"))
+                     '("vscode-css-language-server" "--stdio"))
+
+  ;; Python：如果你安装了 pyright。
+  (when (executable-find "pyright-langserver")
+    (set-eglot-client! '(python-mode python-ts-mode)
+                       '("pyright-langserver" "--stdio")))
+
+  ;; C/C++：clangd 补全更详细。
+  (when (executable-find "clangd")
+    (set-eglot-client! '(c-mode c-ts-mode c++-mode c++-ts-mode objc-mode)
+                       '("clangd"
+                         "--background-index"
+                         "--clang-tidy"
+                         "--completion-style=detailed"))))
 
 ;;; GLSL ----------------------------------------------------------------------
 ;; 背景：
@@ -144,30 +221,9 @@
   (remove-hook 'glsl-mode-local-vars-hook #'lsp!)
   (remove-hook 'glsl-ts-mode-local-vars-hook #'lsp!))
 
-;;; TypeScript tree-sitter ----------------------------------------------------
-;; `.local' 被清理后，Doom 不会自动重新编译 tree-sitter grammar。这里只负责
-;; 自动补装，grammar recipe 仍然使用 Doom 的 `:lang javascript' 模块维护的值。
-(setq treesit-auto-install-grammar 'always)
-
-(defun my/ensure-treesit-grammar (lang)
-  "Install LANG's tree-sitter grammar into Doom's profile directory when missing."
-  (when (and (require 'treesit nil t)
-             (treesit-available-p)
-             (not (treesit-ready-p lang t)))
-    (if (assoc lang treesit-language-source-alist)
-        (let ((dir (file-name-concat doom-profile-data-dir "tree-sitter")))
-          (make-directory dir t)
-          (treesit-install-language-grammar lang dir))
-      (message "No tree-sitter grammar recipe registered for `%s'" lang))))
-
-(defun my/ensure-typescript-treesit-grammars (&rest _)
-  "Install TypeScript and TSX tree-sitter grammars when missing."
-  (dolist (lang '(typescript tsx))
-    (my/ensure-treesit-grammar lang)))
-
-(advice-add #'typescript-ts-mode :before #'my/ensure-typescript-treesit-grammars)
-(advice-add #'tsx-ts-mode :before #'my/ensure-typescript-treesit-grammars)
-
+;;; JavaScript / TypeScript / Web ---------------------------------------------
+;; Tree-sitter grammar 安装、mode remap 和 fallback 交给 Doom 的
+;; `:tools tree-sitter' 与 `:lang javascript' 模块处理。这里仅保留个人编辑偏好。
 (after! typescript-ts-mode
   (setq typescript-ts-mode-indent-offset 2))
 
@@ -198,6 +254,26 @@
 ;; 不要自动编译 rime，改成手动
 ;;   cd ~/.config/emacs/.local/straight/build-30.2/liberime
 ;;   make clean && make -B
+;;; Rime / pyim ---------------------------------------------------------------
+(after! pyim
+  ;; pyim 自己控制候选框，不读取鼠须管候选框设置。
+  (setq pyim-page-length 9
+        pyim-page-style 'vertical
+        pyim-page-tooltip 'posframe))
+
 (after! liberime
+  ;; 共用鼠须管的 Rime 用户配置和词库。
   (setq liberime-auto-build nil
-        liberime-user-data-dir "~/Library/Rime/"))
+        liberime-user-data-dir "~/Library/Rime/")
+
+  ;; 明确选择你系统里正在用的 Rime schema。
+  ;; 如果你实际用小鹤混输，改成 "rime_mint_flypy"。
+  (liberime-try-select-schema "rime_mint")
+
+  ;; 让 Emacs 里的 Rime session 也切到简体。
+  ;; 你的 rime_mint.schema.yaml 用的是 transcription 这个开关：
+  ;;   states: [ 简体, 繁体 ]
+  ;; reset: 0 本来应是简体，但为了避免 session 状态不同，这里显式按一次切换键。
+  ;; 如果执行后反而变繁体，就删掉这行，或在 Emacs 中按 C-` 打开方案菜单切回简体。
+  ;; (liberime-simulate-key-sequence "{Control+Shift+4}")
+  )
