@@ -62,6 +62,26 @@
   js-indent-level 2)
 
 
+;;; Indentation ---------------------------------------------------------------
+
+;; Doom 的全局默认是 4 空格（`tab-width' = 4）。Emacs 内置的 JavaScript
+;; mode 默认也是 `js-indent-level' = 4，`js-ts-mode' 也使用这个变量。
+;;
+;; 不要在这里把 JS 缩进写死成 2 或 4；优先让 EditorConfig 或
+;; `:editor (whitespace +guess)' 按项目配置 / 文件已有缩进，在 buffer 内局部覆盖。
+;; Doom 默认不在项目内猜缩进，而我的项目不一定都有 .editorconfig，所以显式开启。
+(setq +whitespace-guess-in-projects t)
+
+(after! editorconfig
+  ;; 显式声明普通 JS mode 和 tree-sitter JS mode 的缩进变量。
+  ;; 目前 upstream editorconfig-emacs 已经知道这些映射；这里保留是为了让意图
+  ;; 更清楚，也避免以后 mode remap、tree-sitter 或继承关系变化导致失效。
+  (dolist (entry '((js-mode js-indent-level)
+                   (js-ts-mode js-indent-level)))
+    (setf (alist-get (car entry) editorconfig-indentation-alist)
+          (cdr entry))))
+
+
 ;;; Completion / LSP ----------------------------------------------------------
 
 ;; 统一 Corfu 的确认行为：RET 只确认候选，不顺手换行。
@@ -200,20 +220,16 @@
 
 ;; Tree-sitter grammar 安装、mode remap 和 fallback 交给 Doom 的
 ;; `:tools tree-sitter' 与 `:lang javascript' 模块处理。这里仅保留个人编辑偏好。
-(after! typescript-ts-mode
-  (setq typescript-ts-mode-indent-offset 2))
-
-(after! js2-mode
-  (setq js2-basic-offset 2))
-
 (after! web-mode
   ;; 额外让 wxml 也用 web-mode。
   (add-to-list 'auto-mode-alist '("\\.wxml\\'" . web-mode))
 
-  ;; 统一 2 空格缩进。
-  (setq web-mode-markup-indent-offset 2
-        web-mode-css-indent-offset 2
-        web-mode-code-indent-offset 2))
+  ;; web-mode 默认会给 <script> / <style> 这类 part 内容额外加 1 个空格的
+  ;; padding。这个额外 padding 容易和按文件猜出来的缩进宽度叠加，比如
+  ;; 2 空格文件里变成 3 空格。统一关掉它，只让各类 indent offset 决定缩进宽度。
+  (setq web-mode-part-padding 0
+        web-mode-script-padding 0
+        web-mode-style-padding 0))
 
 (after! emmet-mode
   ;; JSX/TSX: 让 emmet-mode 真正支持 tsx-ts-mode，而不是只支持旧的 rjsx-mode。
