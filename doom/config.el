@@ -90,8 +90,11 @@
 
 (after! corfu
   (setq corfu-preview-current t
-        ;; 'valid 更像 VSCode，但更容易误确认；如果不喜欢就改成 'prompt。
-        corfu-preselect 'valid)
+        ;; 不预选第一个候选，先停在 prompt。
+        ;; 原因：Corfu 不会 preview preselect 项；若用 'valid，很多场景下第一项会成为
+        ;; preselect，导致 TAB/S-TAB 循环回第一项时不触发 preview，看起来像“第一项不补全”。
+        ;; 用 'prompt 后，按 TAB 选到第一项时也会正常 preview。
+        corfu-preselect 'prompt)
 
   ;; VSCode Dark 风格的补全弹窗配色。
   (custom-set-faces!
