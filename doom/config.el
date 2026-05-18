@@ -246,28 +246,40 @@
 
 ;;; Rime / pyim ---------------------------------------------------------------
 
-;; 复用系统 Rime 的配置和词库。不要自动编译 rime，改成手动：
-;;   cd ~/.config/emacs/.local/straight/build-30.2/liberime
-;;   make clean && make -B
-(setq liberime-auto-build nil
-      liberime-shared-data-dir "~/Library/Rime/"
-      liberime-user-data-dir "~/Library/Rime/")
-
-(after! pyim
-  ;; pyim 自己控制候选框，不读取鼠须管候选框设置。
-  (setq pyim-page-length 9
-        pyim-page-style 'vertical
-        pyim-page-tooltip 'posframe))
-
-(after! evil-pinyin
-  ;; 关闭 Evil / ? n N 的拼音搜索扩展，避免把搜索内容展开成大量中文 regexp。
-  (setq-default evil-pinyin-with-search-rule 'never))
-
-(after! liberime
-  ;; 明确选择系统里正在用的 Rime schema。如果实际用小鹤混输，改成
-  ;; "rime_mint_flypy"。
-  (liberime-try-select-schema "rime_mint"))
-
-;; 如需手动切换简繁，可在 Emacs 中用 Rime 的方案菜单，或临时执行：
-;; (liberime-simulate-key-sequence "{Control+Shift+4}")
+;; 已禁用 Doom 的 pyim + liberime/rime 配置。
+;;
+;; 背景：之前 Emacs liberime 和系统鼠须管都指向 ~/Library/Rime/，会共用并同时
+;; 读写 rime_mint.userdb / melt_eng.userdb。Rime 用户词库底层是 LevelDB，不适合
+;; 多个进程同时写同一个数据库目录；这可能导致用户词频库损坏、候选排序回退。
+;;
+;; 现在中文输入统一交给系统鼠须管。若以后要恢复 Emacs 内置 Rime，请不要再把
+;; liberime-user-data-dir 指向 ~/Library/Rime/；应使用独立目录，例如：
+;; ~/.local/share/rime-emacs/，再通过导出/同步方式交换词频。
+;;
+;; 原配置保留如下，按需参考：
+;;
+;; ;; 复用系统 Rime 的配置和词库。不要自动编译 rime，改成手动：
+;; ;;   cd ~/.config/emacs/.local/straight/build-30.2/liberime
+;; ;;   make clean && make -B
+;; (setq liberime-auto-build nil
+;;       liberime-shared-data-dir "~/Library/Rime/"
+;;       liberime-user-data-dir "~/Library/Rime/")
+;;
+;; (after! pyim
+;;   ;; pyim 自己控制候选框，不读取鼠须管候选框设置。
+;;   (setq pyim-page-length 9
+;;         pyim-page-style 'vertical
+;;         pyim-page-tooltip 'posframe))
+;;
+;; (after! evil-pinyin
+;;   ;; 关闭 Evil / ? n N 的拼音搜索扩展，避免把搜索内容展开成大量中文 regexp。
+;;   (setq-default evil-pinyin-with-search-rule 'never))
+;;
+;; (after! liberime
+;;   ;; 明确选择系统里正在用的 Rime schema。如果实际用小鹤混输，改成
+;;   ;; "rime_mint_flypy"。
+;;   (liberime-try-select-schema "rime_mint"))
+;;
+;; ;; 如需手动切换简繁，可在 Emacs 中用 Rime 的方案菜单，或临时执行：
+;; ;; (liberime-simulate-key-sequence "{Control+Shift+4}")
 

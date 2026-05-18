@@ -16,7 +16,10 @@
 
 (doom! :input
        ;;bidi              ; (tfel ot) thgir etirw uoy gnipleh
-       (chinese +rime +childframe)
+       ;; 暂时禁用 Doom 的中文输入模块（pyim + liberime/rime）。
+       ;; 原因：之前让 Emacs liberime 与鼠须管共用 ~/Library/Rime/，会同时读写
+       ;; rime_mint.userdb，存在 LevelDB 用户词库损坏/丢词频风险。中文输入改用系统鼠须管。
+       ;; (chinese +rime +childframe)
        ;;japanese
        ;;layout            ; auie,ctsrnm is the superior home row
 
