@@ -84,8 +84,9 @@
 
 ;;; Completion / LSP ----------------------------------------------------------
 
-;; 统一 Corfu 的确认行为：RET 只确认候选，不顺手换行。
-(setq +corfu-want-ret-to-confirm t)
+;; 普通 buffer 中：RET 只确认 Corfu 候选，不顺手换行。
+;; minibuffer 中：RET 确认候选后继续提交 minibuffer，避免 Evil `/` 搜索需要按两次 RET。
+(setq +corfu-want-ret-to-confirm 'minibuffer)
 
 (after! corfu
   (setq corfu-preview-current t
