@@ -51,3 +51,8 @@
 
 (package! eca :recipe (:host github :repo "editor-code-assistant/eca-emacs" :files ("*.el")))
 
+(package! eglot-typescript-preset
+  :recipe (:host github
+           :repo "mwolson/eglot-typescript-preset"
+           :files ("*.el" "templates")))
+

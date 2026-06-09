@@ -30,6 +30,11 @@
   (setenv "PATH" (concat doom-npm-bin path-separator (getenv "PATH")))
   (add-to-list 'exec-path doom-npm-bin))
 
+;; uv / pipx 等工具通常把可执行文件放在这里，例如 rass。
+(let ((local-bin (expand-file-name "~/.local/bin")))
+  (setenv "PATH" (concat local-bin path-separator (getenv "PATH")))
+  (add-to-list 'exec-path local-bin))
+
 (defun my/find-executable (program)
   "Find PROGRAM in the system path."
   (interactive "sProgram name: ")
@@ -89,12 +94,22 @@
 (setq +corfu-want-ret-to-confirm 'minibuffer)
 
 (after! corfu
-  (setq corfu-preview-current t
+  (setq corfu-preview-current nil
+        ;; 不显示 inline preview，只在弹窗列表中高亮当前候选。
+        ;; 这样 TAB/S-TAB 只是“选择候选”，不会在 buffer 里显示 overlay 假文本，
+        ;; 避免误以为候选已经被真正插入。
+        ;;
         ;; 不预选第一个候选，先停在 prompt。
-        ;; 原因：Corfu 不会 preview preselect 项；若用 'valid，很多场景下第一项会成为
-        ;; preselect，导致 TAB/S-TAB 循环回第一项时不触发 preview，看起来像“第一项不补全”。
-        ;; 用 'prompt 后，按 TAB 选到第一项时也会正常 preview。
+        ;; 这样 popup 出来时不会因为误按 RET 而接受第一项。
+        ;; 按 TAB 后才开始选择候选，按 RET 才真正确认。
         corfu-preselect 'prompt)
+
+  ;; ESC 只负责关闭/取消 Corfu，不接受候选。
+  ;; 这样符合大多数编辑器直觉：TAB/S-TAB 只是选择，RET 才确认，ESC 取消。
+  ;; 同时避免 Corfu 默认的 `corfu-reset' 把 selection/preview 回滚造成困惑。
+  (map! :map corfu-map
+        [escape] #'corfu-quit
+        [remap keyboard-escape-quit] #'corfu-quit)
 
   ;; VSCode Dark 风格的补全弹窗配色。
   (custom-set-faces!
@@ -126,7 +141,32 @@
       :background "#1e1e1e"
       :foreground "#cccccc")))
 
+;; `eglot-typescript-preset' 会自动 setup；这里先关闭，等我们设好 Vue/rass
+;; 相关变量后再手动 setup。
+(setq eglot-typescript-preset-auto-setup nil)
+
 (after! eglot
+  (require 'eglot-typescript-preset)
+
+  ;; Vue SFC 通过 `my/vue-mode' 进入 Eglot，并由 rass 组合 Volar 与 TS server。
+  (add-to-list 'eglot-typescript-preset-language-id-overrides
+               '(my/vue-mode . "vue"))
+  (setq eglot-typescript-preset-vue-modes '(my/vue-mode)
+        eglot-typescript-preset-vue-lsp-server 'rass
+        ;; 先只启用 Vue + TypeScript，避免 Tailwind 等额外 server 增加排错复杂度。
+        eglot-typescript-preset-vue-rass-tools
+        '(vue-language-server typescript-language-server)
+        eglot-typescript-preset-tsdk
+        (expand-file-name "~/.config/doom/npm/node_modules/typescript/lib"))
+  (eglot-typescript-preset-setup)
+
+  ;; 防御性地显式注册一次 my/vue-mode。这样即使在未重启 Emacs、preset 曾经
+  ;; 用默认 vue-mode/vue-ts-mode 提前 setup 过的情况下，.vue 也能找到 client，
+  ;; 不会落到 contact=nil 进而触发 "Wrong type argument: processp, nil"。
+  (add-to-list 'eglot-server-programs
+               '(((my/vue-mode :language-id "vue"))
+                 . eglot-typescript-preset--vue-server-contact))
+
   ;; Eglot 的 completion category 是 eglot-capf。Doom 目前只给 lsp-capf 加了
   ;; orderless override，所以这里手动补上。
   (add-to-list 'completion-category-overrides
@@ -221,6 +261,49 @@
 
 
 ;;; JavaScript / TypeScript / Web ---------------------------------------------
+
+(autoload 'web-mode "web-mode")
+
+(define-derived-mode my/vue-mode web-mode "Vue"
+  "Major mode for Vue single-file components."
+  (setq-local web-mode-engine "vue"))
+
+;; Doom 默认把 .vue 放进 web-mode。这里给 Vue SFC 单独的 mode，避免所有
+;; web-mode buffer 都误用 Volar/rass。先删掉已有 .vue 关联，避免 Doom/web-mode
+;; 的规则排在前面时仍然进入 web-mode。
+(defun my/vue-file-p ()
+  "Return non-nil if the current buffer visits a .vue file."
+  (and buffer-file-name
+       (string-match-p "\\.vue\\'" buffer-file-name)))
+
+(defun my/register-vue-mode-h ()
+  "Make .vue files use `my/vue-mode' instead of plain `web-mode'."
+  (setq auto-mode-alist
+        (cl-remove-if (lambda (entry)
+                        (and (stringp (car-safe entry))
+                             (string-match-p "\\\\.vue" (car entry))))
+                      auto-mode-alist))
+  (add-to-list 'auto-mode-alist '("\\.vue\\'" . my/vue-mode)))
+
+(defvar my/vue-mode--redirecting nil)
+(defun my/vue-mode-from-web-mode-h ()
+  "Fallback: if a .vue file still entered plain `web-mode', switch to Vue mode."
+  (when (and (not my/vue-mode--redirecting)
+             (eq major-mode 'web-mode)
+             (my/vue-file-p))
+    (let ((my/vue-mode--redirecting t))
+      (my/vue-mode))))
+
+(my/register-vue-mode-h)
+(add-hook 'doom-after-init-hook #'my/register-vue-mode-h)
+(add-hook 'web-mode-hook #'my/vue-mode-from-web-mode-h)
+
+;; 正常情况下 Doom 会在 `my/vue-mode-local-vars-hook' 里启动 LSP；但当 .vue
+;; 先被 Doom 分到 web-mode、再由 `web-mode-hook' 兜底切到 my/vue-mode 时，
+;; local-vars hook 的时机可能已经错过。这里同时挂普通 mode hook，保证 Eglot
+;; 会启动。
+(add-hook 'my/vue-mode-hook #'lsp! 'append)
+(add-hook 'my/vue-mode-local-vars-hook #'lsp! 'append)
 
 ;; Tree-sitter grammar 安装、mode remap 和 fallback 交给 Doom 的
 ;; `:tools tree-sitter' 与 `:lang javascript' 模块处理。这里仅保留个人编辑偏好。
