@@ -30,11 +30,6 @@
   (setenv "PATH" (concat doom-npm-bin path-separator (getenv "PATH")))
   (add-to-list 'exec-path doom-npm-bin))
 
-;; uv / pipx 等工具通常把可执行文件放在这里，例如 rass。
-(let ((local-bin (expand-file-name "~/.local/bin")))
-  (setenv "PATH" (concat local-bin path-separator (getenv "PATH")))
-  (add-to-list 'exec-path local-bin))
-
 (defun my/find-executable (program)
   "Find PROGRAM in the system path."
   (interactive "sProgram name: ")
@@ -59,6 +54,18 @@
 (after! projectile
   ;; 忽略搜索 git submodules 目录。
   (add-to-list 'projectile-globally-ignored-directories "submodules"))
+
+;; Doom 的 Vertico 项目搜索直接使用 Consult/ripgrep，不读取 Projectile 的
+;; ignored-directories 配置；显式排除任意层级的 submodules/ 目录。
+(defun my/consult-ripgrep-exclude-submodules (orig-fn paths)
+  (let ((consult-ripgrep-args
+         (concat consult-ripgrep-args
+                 " --glob=!**/submodules/**")))
+    (funcall orig-fn paths)))
+
+(after! consult
+  (advice-add #'consult--ripgrep-make-builder
+              :around #'my/consult-ripgrep-exclude-submodules))
 
 
 ;;; File types ----------------------------------------------------------------
@@ -368,4 +375,5 @@
 ;;
 ;; ;; 如需手动切换简繁，可在 Emacs 中用 Rime 的方案菜单，或临时执行：
 ;; ;; (liberime-simulate-key-sequence "{Control+Shift+4}")
+
 
